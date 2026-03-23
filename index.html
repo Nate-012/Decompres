@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Decompres — Image Compressor</title>
+  <title>Decompres — Image Compressor & Converter</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -43,6 +43,36 @@
       max-width: 520px;
     }
 
+    .tabs {
+      display: flex;
+      background: #111;
+      border-radius: 10px;
+      padding: 4px;
+      margin-bottom: 32px;
+    }
+
+    .tab {
+      flex: 1;
+      padding: 10px;
+      text-align: center;
+      font-size: 14px;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      color: #666;
+      transition: all 0.2s;
+      border: none;
+      background: transparent;
+    }
+
+    .tab.active {
+      background: #6c63ff;
+      color: white;
+    }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
     .drop-zone {
       border: 2px dashed #333;
       border-radius: 12px;
@@ -59,25 +89,21 @@
 
     .drop-zone input { display: none; }
 
-    .drop-icon {
-      font-size: 40px;
-      margin-bottom: 12px;
-    }
+    .drop-icon { font-size: 40px; margin-bottom: 12px; }
 
-    .drop-text {
-      font-size: 15px;
-      color: #aaa;
-      margin-bottom: 4px;
-    }
+    .drop-text { font-size: 15px; color: #aaa; margin-bottom: 4px; }
 
-    .drop-subtext {
+    .drop-subtext { font-size: 13px; color: #555; }
+
+    .file-name {
+      margin-top: 16px;
       font-size: 13px;
-      color: #555;
+      color: #6c63ff;
+      text-align: center;
+      min-height: 20px;
     }
 
-    .quality-section {
-      margin-top: 28px;
-    }
+    .quality-section { margin-top: 28px; }
 
     .quality-label {
       display: flex;
@@ -87,10 +113,7 @@
       margin-bottom: 10px;
     }
 
-    .quality-label span:last-child {
-      color: #6c63ff;
-      font-weight: 600;
-    }
+    .quality-label span:last-child { color: #6c63ff; font-weight: 600; }
 
     input[type=range] {
       width: 100%;
@@ -104,6 +127,48 @@
       font-size: 11px;
       color: #555;
       margin-top: 6px;
+    }
+
+    .format-section { margin-top: 28px; }
+
+    .format-label {
+      font-size: 14px;
+      color: #aaa;
+      margin-bottom: 10px;
+      display: block;
+    }
+
+    .format-options {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .format-btn {
+      padding: 12px;
+      background: #111;
+      border: 1px solid #333;
+      border-radius: 8px;
+      color: #aaa;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+    }
+
+    .format-btn:hover { border-color: #6c63ff; color: #6c63ff; }
+
+    .format-btn.selected {
+      background: #1f1d2e;
+      border-color: #6c63ff;
+      color: #6c63ff;
+    }
+
+    .format-hint {
+      font-size: 11px;
+      color: #555;
+      margin-top: 8px;
     }
 
     .btn {
@@ -145,14 +210,20 @@
 
     .result-row:last-child { margin-bottom: 0; }
 
-    .result-row strong {
-      color: #f0f0f0;
-      font-weight: 600;
-    }
+    .result-row strong { color: #f0f0f0; font-weight: 600; }
 
     .badge {
       background: #1a2e1a;
       color: #4caf50;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 20px;
+    }
+
+    .badge-blue {
+      background: #1a1a2e;
+      color: #6c63ff;
       font-size: 12px;
       font-weight: 600;
       padding: 4px 10px;
@@ -173,9 +244,7 @@
       transition: background 0.2s;
     }
 
-    .download-btn:hover {
-      background: #1f1d2e;
-    }
+    .download-btn:hover { background: #1f1d2e; }
 
     .message-box {
       margin-top: 28px;
@@ -204,13 +273,6 @@
 
     .error-box.show { display: block; }
 
-    .file-name {
-      margin-top: 16px;
-      font-size: 13px;
-      color: #6c63ff;
-      text-align: center;
-    }
-
     .loader {
       display: none;
       text-align: center;
@@ -220,145 +282,239 @@
     }
 
     .loader.show { display: block; }
+
+    .output-note {
+      margin-top: 12px;
+      font-size: 12px;
+      color: #555;
+      text-align: center;
+    }
   </style>
 </head>
 <body>
 
   <div class="logo">De<span>compres</span></div>
-  <p class="tagline">Compress images up to 94% — free, fast, private.</p>
+  <p class="tagline">Compress & convert images — free, fast, private.</p>
 
   <div class="card">
-    <div class="drop-zone" id="dropZone">
-      <input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp,image/gif,image/bmp,image/tiff,image/heic" />
-      <div class="drop-icon">🖼️</div>
-      <p class="drop-text">Drop your image here or click to upload</p>
-      <p class="drop-subtext">JPEG, PNG, WebP, GIF, BMP, TIFF, HEIC · Max 20MB</p>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('compress')">Compress</button>
+      <button class="tab" onclick="switchTab('convert')">Convert</button>
     </div>
 
-    <div class="file-name" id="fileName"></div>
+    <!-- COMPRESS TAB -->
+    <div class="tab-content active" id="tab-compress">
+      <div class="drop-zone" id="compressDropZone">
+        <input type="file" id="compressFileInput" accept="image/jpeg,image/png,image/webp,image/gif,image/bmp,image/tiff,image/heic" />
+        <div class="drop-icon">🖼️</div>
+        <p class="drop-text">Drop your image here or click to upload</p>
+        <p class="drop-subtext">JPEG, PNG, WebP, GIF, BMP, TIFF, HEIC · Max 20MB</p>
+      </div>
 
-    <div class="quality-section">
-      <div class="quality-label">
-        <span>Compression quality</span>
-        <span id="qualityValue">80</span>
+      <div class="file-name" id="compressFileName"></div>
+
+      <div class="quality-section">
+        <div class="quality-label">
+          <span>Compression quality</span>
+          <span id="qualityValue">80</span>
+        </div>
+        <input type="range" id="qualitySlider" min="40" max="90" value="80" />
+        <div class="quality-hints">
+          <span>Smaller file</span>
+          <span>Better quality</span>
+        </div>
       </div>
-      <input type="range" id="qualitySlider" min="40" max="90" value="80" />
-      <div class="quality-hints">
-        <span>Smaller file</span>
-        <span>Better quality</span>
+
+      <p class="output-note">Output format: WebP</p>
+
+      <button class="btn" id="compressBtn" disabled>Compress Image</button>
+
+      <div class="loader" id="compressLoader">⏳ Compressing your image...</div>
+
+      <div class="result" id="compressResult">
+        <div class="result-row">
+          <span>Original size</span>
+          <strong id="originalSize">—</strong>
+        </div>
+        <div class="result-row">
+          <span>Compressed size</span>
+          <strong id="compressedSize">—</strong>
+        </div>
+        <div class="result-row">
+          <span>You saved</span>
+          <span class="badge" id="savedPercent">—</span>
+        </div>
+        <button class="download-btn" id="compressDownloadBtn">Download compressed image</button>
       </div>
+
+      <div class="message-box" id="compressMessageBox"></div>
+      <div class="error-box" id="compressErrorBox"></div>
     </div>
 
-    <button class="btn" id="compressBtn" disabled>Compress Image</button>
+    <!-- CONVERT TAB -->
+    <div class="tab-content" id="tab-convert">
+      <div class="drop-zone" id="convertDropZone">
+        <input type="file" id="convertFileInput" accept="image/jpeg,image/png,image/webp,image/gif,image/bmp,image/tiff,image/heic" />
+        <div class="drop-icon">🔄</div>
+        <p class="drop-text">Drop your image here or click to upload</p>
+        <p class="drop-subtext">JPEG, PNG, WebP, GIF, BMP, TIFF, HEIC · Max 20MB</p>
+      </div>
 
-    <div class="loader" id="loader">⏳ Compressing your image...</div>
+      <div class="file-name" id="convertFileName"></div>
 
-    <div class="result" id="result">
-      <div class="result-row">
-        <span>Original size</span>
-        <strong id="originalSize">—</strong>
+      <div class="format-section">
+        <span class="format-label">Convert to:</span>
+        <div class="format-options">
+          <div class="format-btn selected" data-format="jpeg" onclick="selectFormat(this)">
+            JPEG
+          </div>
+          <div class="format-btn" data-format="png" onclick="selectFormat(this)">
+            PNG
+          </div>
+          <div class="format-btn" data-format="webp" onclick="selectFormat(this)">
+            WebP
+          </div>
+        </div>
+        <p class="format-hint" id="formatHint">Best for photos, social media, general use</p>
       </div>
-      <div class="result-row">
-        <span>Compressed size</span>
-        <strong id="compressedSize">—</strong>
+
+      <button class="btn" id="convertBtn" disabled>Convert Image</button>
+
+      <div class="loader" id="convertLoader">⏳ Converting your image...</div>
+
+      <div class="result" id="convertResult">
+        <div class="result-row">
+          <span>Original size</span>
+          <strong id="convertOriginalSize">—</strong>
+        </div>
+        <div class="result-row">
+          <span>Output size</span>
+          <strong id="convertOutputSize">—</strong>
+        </div>
+        <div class="result-row">
+          <span>Output format</span>
+          <span class="badge-blue" id="convertOutputFormat">—</span>
+        </div>
+        <button class="download-btn" id="convertDownloadBtn">Download converted image</button>
       </div>
-      <div class="result-row">
-        <span>You saved</span>
-        <span class="badge" id="savedPercent">—</span>
-      </div>
-      <button class="download-btn" id="downloadBtn">Download compressed image</button>
+
+      <div class="error-box" id="convertErrorBox"></div>
     </div>
 
-    <div class="message-box" id="messageBox"></div>
-    <div class="error-box" id="errorBox"></div>
   </div>
 
   <script>
     const API = 'https://compressor-576221831390.us-central1.run.app';
 
-    const dropZone = document.getElementById('dropZone');
-    const fileInput = document.getElementById('fileInput');
-    const fileName = document.getElementById('fileName');
-    const qualitySlider = document.getElementById('qualitySlider');
-    const qualityValue = document.getElementById('qualityValue');
-    const compressBtn = document.getElementById('compressBtn');
-    const loader = document.getElementById('loader');
-    const result = document.getElementById('result');
-    const messageBox = document.getElementById('messageBox');
-    const errorBox = document.getElementById('errorBox');
-    const downloadBtn = document.getElementById('downloadBtn');
-
-    let selectedFile = null;
-    let compressedBlob = null;
-
-    // Quality slider
-    qualitySlider.addEventListener('input', () => {
-      qualityValue.textContent = qualitySlider.value;
-    });
-
-    // Click to upload
-    dropZone.addEventListener('click', () => fileInput.click());
-
-    // Drag and drop
-    dropZone.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      dropZone.classList.add('dragover');
-    });
-
-    dropZone.addEventListener('dragleave', () => {
-      dropZone.classList.remove('dragover');
-    });
-
-    dropZone.addEventListener('drop', (e) => {
-      e.preventDefault();
-      dropZone.classList.remove('dragover');
-      const file = e.dataTransfer.files[0];
-      if (file) setFile(file);
-    });
-
-    fileInput.addEventListener('change', () => {
-      if (fileInput.files[0]) setFile(fileInput.files[0]);
-    });
-
-    function setFile(file) {
-      selectedFile = file;
-      fileName.textContent = `📎 ${file.name} (${formatSize(file.size)})`;
-      compressBtn.disabled = false;
-      result.classList.remove('show');
-      messageBox.classList.remove('show');
-      errorBox.classList.remove('show');
+    // --- TAB SWITCHING ---
+    function switchTab(tab) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+      document.getElementById('tab-' + tab).classList.add('active');
+      event.target.classList.add('active');
     }
 
+    // --- FORMAT HINTS ---
+    const formatHints = {
+      jpeg: 'Best for photos, social media, general use',
+      png:  'Best for logos, screenshots, images with transparency',
+      webp: 'Best for websites, smallest file size'
+    };
+
+    let selectedFormat = 'jpeg';
+
+    function selectFormat(el) {
+      document.querySelectorAll('.format-btn').forEach(b => b.classList.remove('selected'));
+      el.classList.add('selected');
+      selectedFormat = el.dataset.format;
+      document.getElementById('formatHint').textContent = formatHints[selectedFormat];
+    }
+
+    // --- HELPERS ---
     function formatSize(bytes) {
       if (bytes < 1024) return bytes + ' B';
       if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
       return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
     }
 
-    // Compress
-    compressBtn.addEventListener('click', async () => {
-      if (!selectedFile) return;
+    function setupDropZone(dropZoneId, fileInputId, fileNameId, btnId, onFile) {
+      const dropZone = document.getElementById(dropZoneId);
+      const fileInput = document.getElementById(fileInputId);
+      const fileName = document.getElementById(fileNameId);
+      const btn = document.getElementById(btnId);
 
-      compressBtn.disabled = true;
+      dropZone.addEventListener('click', () => fileInput.click());
+
+      dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('dragover');
+      });
+
+      dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+
+      dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('dragover');
+        if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+      });
+
+      fileInput.addEventListener('change', () => {
+        if (fileInput.files[0]) handleFile(fileInput.files[0]);
+      });
+
+      function handleFile(file) {
+        fileName.textContent = `📎 ${file.name} (${formatSize(file.size)})`;
+        btn.disabled = false;
+        onFile(file);
+      }
+    }
+
+    // --- COMPRESS ---
+    let compressFile = null;
+    let compressedBlob = null;
+
+    setupDropZone('compressDropZone', 'compressFileInput', 'compressFileName', 'compressBtn', (f) => {
+      compressFile = f;
+      document.getElementById('compressResult').classList.remove('show');
+      document.getElementById('compressMessageBox').classList.remove('show');
+      document.getElementById('compressErrorBox').classList.remove('show');
+    });
+
+    document.getElementById('qualitySlider').addEventListener('input', (e) => {
+      document.getElementById('qualityValue').textContent = e.target.value;
+    });
+
+    document.getElementById('compressBtn').addEventListener('click', async () => {
+      if (!compressFile) return;
+
+      const btn = document.getElementById('compressBtn');
+      const loader = document.getElementById('compressLoader');
+      const result = document.getElementById('compressResult');
+      const messageBox = document.getElementById('compressMessageBox');
+      const errorBox = document.getElementById('compressErrorBox');
+      const quality = document.getElementById('qualitySlider').value;
+
+      btn.disabled = true;
       loader.classList.add('show');
       result.classList.remove('show');
       messageBox.classList.remove('show');
       errorBox.classList.remove('show');
 
       const formData = new FormData();
-      formData.append('file', selectedFile);
+      formData.append('file', compressFile);
 
       try {
-        const response = await fetch(
-          `${API}/compress?quality=${qualitySlider.value}`,
-          { method: 'POST', body: formData }
-        );
+        const response = await fetch(`${API}/compress?quality=${quality}`, {
+          method: 'POST', body: formData
+        });
 
         loader.classList.remove('show');
+        const contentType = response.headers.get('content-type');
 
-        if (response.headers.get('content-type').includes('application/json')) {
+        if (contentType && contentType.includes('application/json')) {
           const data = await response.json();
-
           if (data.hint === 'already_optimised') {
             messageBox.textContent = data.message;
             messageBox.classList.add('show');
@@ -368,14 +524,9 @@
           }
         } else {
           compressedBlob = await response.blob();
-          const originalSize = response.headers.get('x-original-size');
-          const compressedSize = response.headers.get('x-compressed-size');
-          const reduction = response.headers.get('x-reduction-percent');
-
-          document.getElementById('originalSize').textContent = formatSize(parseInt(originalSize));
-          document.getElementById('compressedSize').textContent = formatSize(parseInt(compressedSize));
-          document.getElementById('savedPercent').textContent = `${reduction}% smaller`;
-
+          document.getElementById('originalSize').textContent = formatSize(parseInt(response.headers.get('x-original-size')));
+          document.getElementById('compressedSize').textContent = formatSize(parseInt(response.headers.get('x-compressed-size')));
+          document.getElementById('savedPercent').textContent = `${response.headers.get('x-reduction-percent')}% smaller`;
           result.classList.add('show');
         }
       } catch (err) {
@@ -384,11 +535,10 @@
         errorBox.classList.add('show');
       }
 
-      compressBtn.disabled = false;
+      btn.disabled = false;
     });
 
-    // Download
-    downloadBtn.addEventListener('click', () => {
+    document.getElementById('compressDownloadBtn').addEventListener('click', () => {
       if (!compressedBlob) return;
       const url = URL.createObjectURL(compressedBlob);
       const a = document.createElement('a');
@@ -396,6 +546,68 @@
       a.download = 'compressed.webp';
       a.click();
       URL.revokeObjectURL(url);
+    });
+
+    // --- CONVERT ---
+    let convertFile = null;
+    let convertedBlob = null;
+
+    setupDropZone('convertDropZone', 'convertFileInput', 'convertFileName', 'convertBtn', (f) => {
+      convertFile = f;
+      document.getElementById('convertResult').classList.remove('show');
+      document.getElementById('convertErrorBox').classList.remove('show');
+    });
+
+    document.getElementById('convertBtn').addEventListener('click', async () => {
+      if (!convertFile) return;
+
+      const btn = document.getElementById('convertBtn');
+      const loader = document.getElementById('convertLoader');
+      const result = document.getElementById('convertResult');
+      const errorBox = document.getElementById('convertErrorBox');
+
+      btn.disabled = true;
+      loader.classList.add('show');
+      result.classList.remove('show');
+      errorBox.classList.remove('show');
+
+      const formData = new FormData();
+      formData.append('file', convertFile);
+
+      try {
+        const response = await fetch(`${API}/convert?target_format=${selectedFormat}`, {
+          method: 'POST', body: formData
+        });
+
+        loader.classList.remove('show');
+
+        if (!response.ok) {
+          const data = await response.json();
+          errorBox.textContent = data.detail || 'Something went wrong.';
+          errorBox.classList.add('show');
+        } else {
+          convertedBlob = await response.blob();
+          const ext = selectedFormat === 'jpeg' ? 'jpg' : selectedFormat;
+          document.getElementById('convertOriginalSize').textContent = formatSize(parseInt(response.headers.get('x-original-size')));
+          document.getElementById('convertOutputSize').textContent = formatSize(parseInt(response.headers.get('x-output-size')));
+          document.getElementById('convertOutputFormat').textContent = selectedFormat.toUpperCase();
+          document.getElementById('convertDownloadBtn').onclick = () => {
+            const url = URL.createObjectURL(convertedBlob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `converted.${ext}`;
+            a.click();
+            URL.revokeObjectURL(url);
+          };
+          result.classList.add('show');
+        }
+      } catch (err) {
+        loader.classList.remove('show');
+        errorBox.textContent = 'Could not reach the server. Please try again.';
+        errorBox.classList.add('show');
+      }
+
+      btn.disabled = false;
     });
   </script>
 </body>
